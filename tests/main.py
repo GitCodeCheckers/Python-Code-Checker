@@ -5,4 +5,4 @@ from dotenv import load_dotenv
 load_dotenv()
 
 print(time.time())
-print(time.now())
+print(os.now())
