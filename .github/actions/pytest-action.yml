@@ -1,0 +1,64 @@
+name: "Matrix Pytest Runner."
+description: "Run flake8 and pytest across matrix Python versions with optional requirements files."
+author: "GitCodeCheckers"
+branding:
+  icon: "check-circle"
+  color: "blue"
+
+inputs:
+  file:
+    description: "Python file or test path to run with pytest."
+    required: false
+    default: ""
+  python-version:
+    description: "Python version to use."
+    required: true
+  requirements:
+    description: "Optional requirements file to install from (overrides requirements.txt)"
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install flake8 pytest
+
+        # Priority 1: matrix-provided requirements file
+        if [ -n "${{ inputs.requirements }}" ] && [ -f "${{ inputs.requirements }}" ]; then
+          echo "Installing from matrix requirements file: ${{ inputs.requirements }}"
+          pip install -r "${{ inputs.requirements }}"
+
+        # Priority 2: fallback to requirements.txt
+        elif [ -f requirements.txt ]; then
+          echo "Installing from requirements.txt"
+          pip install -r requirements.txt
+
+        # Priority 3: no requirements found
+        else
+          echo "No requirements file provided or found."
+        fi
+
+    - name: Lint with flake8
+      shell: bash
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Run pytest
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.file }}" ]; then
+          echo "Running pytest on entire project."
+          pytest
+        else
+          echo "Running pytest on: ${{ inputs.file }}"
+          pytest ${{ inputs.file }}
+        fi
