@@ -54,14 +54,4 @@ runs:
       shell: bash
       run: |
         echo "Running tox."
-        tox || code=$?
-
-        if [ "${code:-0}" = "5" ]; then
-          echo "No tests collected — treating as success."
-          exit 0
-        fi
-
-        if [ -n "${code:-}" ] && [ "$code" != "0" ]; then
-          echo "Tox failed with exit code $code"
-          exit "$code"
-        fi
+        tox
