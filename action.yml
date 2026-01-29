@@ -40,17 +40,12 @@ runs:
     - name: Install project dependencies
       shell: bash
       run: |
-        # Priority 1: matrix-provided requirements file
         if [ -n "${{ inputs.requirements }}" ] && [ -f "${{ inputs.requirements }}" ]; then
           echo "Installing from matrix requirements file: ${{ inputs.requirements }}"
           pip install -r "${{ inputs.requirements }}"
-
-        # Priority 2: fallback to requirements.txt
         elif [ -f requirements.txt ]; then
           echo "Installing from default requirements.txt"
           pip install -r requirements.txt
-
-        # Priority 3: no requirements found
         else
           echo "No requirements file provided or found."
         fi
@@ -61,13 +56,11 @@ runs:
         echo "Running tox."
         tox || code=$?
 
-        # Exit code 5 = no tests collected → treat as success
         if [ "${code:-0}" = "5" ]; then
           echo "No tests collected — treating as success."
           exit 0
         fi
 
-        # Any other non-zero exit code = real failure
         if [ -n "${code:-}" ] && [ "$code" != "0" ]; then
           echo "Tox failed with exit code $code"
           exit "$code"
