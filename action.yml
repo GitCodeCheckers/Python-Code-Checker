@@ -11,12 +11,12 @@ inputs:
     required: true
 
   file:
-    description: "Optional file or directory passed to tox (if your tox.ini uses it)."
+    description: "Optional file(s) or directory passed to tox as {posargs}."
     required: false
     default: ""
 
   requirements:
-    description: "Optional requirements file to install from (overrides requirements.txt)."
+    description: "Optional comma-separated list of requirements files to install (overrides requirements.txt)."
     required: false
     default: ""
 
@@ -40,9 +40,18 @@ runs:
     - name: Install project dependencies
       shell: bash
       run: |
-        if [ -n "${{ inputs.requirements }}" ] && [ -f "${{ inputs.requirements }}" ]; then
-          echo "Installing from matrix requirements file: ${{ inputs.requirements }}"
-          pip install -r "${{ inputs.requirements }}"
+        # If multiple requirement files are provided, split them by comma
+        if [ -n "${{ inputs.requirements }}" ]; then
+          IFS=',' read -ra reqs <<< "${{ inputs.requirements }}"
+          for req in "${reqs[@]}"; do
+            req_trimmed="$(echo "$req" | xargs)"
+            if [ -f "$req_trimmed" ]; then
+              echo "Installing from requirements file: $req_trimmed"
+              pip install -r "$req_trimmed"
+            else
+              echo "Warning: requirements file '$req_trimmed' not found."
+            fi
+          done
         elif [ -f requirements.txt ]; then
           echo "Installing from default requirements.txt"
           pip install -r requirements.txt
@@ -54,4 +63,8 @@ runs:
       shell: bash
       run: |
         echo "Running tox."
-        tox
+        if [ -n "${{ inputs.file }}" ]; then
+          tox -- ${{ inputs.file }}
+        else
+          tox
+        fi
