@@ -3,6 +3,7 @@ import shutil
 import sys
 
 args = sys.argv[1:]
+print("[tox] Received args:", args)
 copied = []
 
 def is_test_file(filename):
