@@ -1,5 +1,5 @@
 name: "Python Code Checker"
-description: "Run tox across matrix Python versions with optional requirements files."
+description: "Run tox across matrix Python versions with optional requirements files and flexible test file handling."
 author: "GitCodeCheckers"
 branding:
   icon: "check-circle"
